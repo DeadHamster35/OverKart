@@ -98,10 +98,47 @@ ADDIU a1, a1, lo(PAYLOAD_ROM) //DMA from ROM address 0x00C00000
 LUI a2, hi(DMA_MAX_LENGTH)
 JAL DMA_FUNC
 ADDIU a2, lo(DMA_MAX_LENGTH)
-J OriginalBootFunction
+J 800E32C4 //custom DMA
 NOP
 
+.org 0x1804 // Custom DMA
+LUI a0, 0x8040
+ORI a0, a0 0xC4C0
+LUI a1, 0x00BE
+ORI a1, a1 0x91C0
+JAL DMA_FUNC
+ORI a2, zero, 0x0150
+J	OriginalBootFunction
+NOP
 
+.org 0xC03ABC // hook for trophy scene fix
+LUI at, 0x800E
+J	0x8040C4C0
+
+.org 0xBE91C0 // trophy scene fix
+LBU v1, 0xcC527(at)
+ORI T1, zero, 0x0005
+BEQ V1, T1, 0x8040C4E4
+LUI V1, 0x800F
+LBU V1, 0x6990(v1)
+ORI T1, zero, 0x00C0
+BEQ V1, T1, 0x8040C4E4
+NOP
+SB zero, 0xC5A1(at)
+J	0x80403AC8
+
+.org 0xFF098 // hook for course flags
+J	0x8040C4EC
+ADDIU	zero, zero, 0x0000
+
+.org 0xBE91EC // course flags
+LUI t6, 0x8040
+LBU t6, 0x3CAF(t6)
+BEQZ t6, 0x8040C500
+LHU t7, 0xC5A0(t7)
+OR t7 zero, zero
+J	0x80295A90
+SLTIU at, t7, 0x0014
 
 
 
